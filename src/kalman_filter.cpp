@@ -26,7 +26,7 @@ void KalmanFilter::Predict() {
   x_ = (F_ * x_);
 
   // Predict the new state covariance matrix
-  Eigen::MatrixXd F_transpose_ = F_.transpose();
+  MatrixXd F_transpose_ = F_.transpose();
   P_ = (F_ * P_ * F_transpose_) + Q_;
 }
 
@@ -69,11 +69,11 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float py_2 = (py * py);
 
   float rho = sqrt((px_2 + py_2));
-  float phi = atan2(py/px);
+  float phi = atan2(py, px);
   float rho_dot = (( (px * vx) + (py * vy) ) / rho);
 
   // Store the predicted converted values in a vector
-  Eigen:VectorXd z_pred = VectorXd(3);
+  VectorXd z_pred = VectorXd(3);
   z_pred << rho, phi, rho_dot;
 
 
@@ -82,7 +82,17 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
 
   // Let's normalize the angle phi to be between -pi and +pi
-  
+  // Use the math.h M_PI value here
+  while(y_(1) > M_PI) {
+    y_(1) -= (2 * M_PI);
+  }
+
+  while(y_(1) < -M_PI) {
+    y_(1) += (2 * M_PI);
+  }
+
+
+
   MatrixXd H_transpose_ = H_.transpose();
 
   // Equation-2

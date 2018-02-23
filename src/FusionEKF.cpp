@@ -56,7 +56,7 @@ FusionEKF::FusionEKF() {
 
   // process covariance matrix
   Q_ = MatrixXd(4, 4);
-  Q_ = 0, 0, 0, 0,
+  Q_ << 0, 0, 0, 0,
        0, 0, 0, 0,
        0, 0, 0, 0,
        0, 0, 0, 0;
@@ -89,24 +89,24 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       */
 
       // Get the raw measurements in polar coordinates
-      float ro = measurement_pack.raw_measurements_(0);
+      float rho = measurement_pack.raw_measurements_(0);
       float theta = measurement_pack.raw_measurements_(1);
-      float ro_dot = measurement_pack.raw_measurements_(2);
+      float rho_dot = measurement_pack.raw_measurements_(2);
 
       // Convert polar coordinates to cartersian coordinates
-      VectorXd(4) input;
-      input(0) = ro * cos(theta); //px
-      input(1) = ro * sin(theta); //py
-      input(2) = ro_dot * cos(theta); //vx
-      input(3) = ro_dot * sin(theta); //vy
+      VectorXd input = VectorXd(4);
+      input(0) = rho * cos(theta); //px
+      input(1) = rho * sin(theta); //py
+      input(2) = rho_dot * cos(theta); //vx
+      input(3) = rho_dot * sin(theta); //vy
 
       // Initialize EKF
-      ekf_.Init(input, P_, F_, Hj, R_radar_, Q_); 
+      ekf_.Init(input, P_, F_, Hj_, R_radar_, Q_); 
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       
       // Get the raw measurements
-      VectorXd(4) input;
+      VectorXd input = VectorXd(4);
       input(0) = measurement_pack.raw_measurements_(0); //px
       input(1) = measurement_pack.raw_measurements_(1); //py
       input(2) = 0; //vx
@@ -130,6 +130,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   // Delta_T in seconds
   float delta_time = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+  previous_timestamp_ = measurement_pack.timestamp_;
 
   // Updating the state transition matrix
   ekf_.F_(0, 2) = delta_time;
